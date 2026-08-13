@@ -24,7 +24,7 @@ CSS = r"""
 * { box-sizing: border-box; }
 
 html {
-  background-color: #bfe9ff;
+  background-color: #bfe9ff !important;
   scroll-behavior: smooth;
   scroll-padding-top: 24px;
 }
@@ -32,6 +32,7 @@ html {
 body {
   margin: 0;
   background: var(--paper);
+  background-color: #bfe9ff !important;
   color: var(--text);
   font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -756,7 +757,7 @@ main { padding: 56px 0 84px; }
 }
 
 @media (max-width: 640px) {
-  html { background-color: #bfe9ff; }
+  html, body { background-color: #bfe9ff !important; }
   .shell { width: min(100% - 28px, 1120px); }
   .top-nav { align-items: flex-start; flex-direction: column; padding: 14px 0; }
   .top-links { width: 100%; justify-content: flex-start; }
