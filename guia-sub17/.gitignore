@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.cache/
+dist/.tmp/
+
+# Los Archivo_Diagrama viven en assets/img/tecnica/ y SI se versionan:
+# no anadir aqui assets/, *.webp, *.png, *.avif ni *.svg.

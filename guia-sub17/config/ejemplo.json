@@ -1,0 +1,15 @@
+﻿{
+    "portada": {
+        "titulo": "Guía de Estudio Sub-17",
+        "subtitulo": "Preparación Oficial"
+    },
+    "capitulos": [
+        {
+            "id": "1",
+            "titulo": "Introducción",
+            "secciones": [
+                {"texto": "Contenido de la primera sección."}
+            ]
+        }
+    ]
+}
