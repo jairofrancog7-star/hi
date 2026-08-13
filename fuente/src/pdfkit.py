@@ -625,7 +625,7 @@ def qr_matrix(text):
     return size, best
 
 
-def draw_qr(page, text, x, y, box, fg='#000000', bg='#ffffff', quiet=2):
+def draw_qr(page, text, x, y, box, fg='#000000', bg='#ffffff', quiet=4):
     """Dibuja el QR dentro de un cuadrado de lado `box`."""
     size, m = qr_matrix(text)
     total = size + quiet * 2

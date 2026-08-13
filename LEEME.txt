@@ -1,40 +1,98 @@
-ENTRENA COMO LAS GRANDES · sub-17 femenil
-=========================================
+ENTRENA COMO LAS GRANDES · fútbol femenil sub-17
+================================================
 
-QUÉ HAY AQUÍ
+GUÍA RÁPIDA
 
-  guia-entrena-como-las-grandes.pdf   20 hojas A4. 15 ejercicios, cada uno con
-                                      dibujo de cancha, paso a paso, dosis,
-                                      qué mira la compañera, enlaces y QR.
-                                      Se imprime y se lleva al campo.
+Guía de entrenamiento con 15 ejercicios dibujados, la dosis de cada uno y el video de cada uno. Pensada para una cancha compartida, botellas de refresco y una pared.
 
-  posters-para-el-grupo.pdf           13 láminas verticales (tamaño historia).
-                                      Le tomas captura a la que quieras y la
-                                      mandas al grupo de WhatsApp.
-
-  index.html                          La misma guía para el celular, con todos
-                                      los videos como botones. Sin internet no
-                                      se ven los videos, pero la guía sí.
-
-  fuente/                             El código que genera los tres archivos.
-                                      python3 fuente/build.py los vuelve a hacer.
+Este repositorio contiene una edición canónica con 15 fichas de entrenamiento,
+una guía de 20 páginas A4, 13 láminas verticales y una versión web adaptable.
 
 
-CÓMO SE VEN LOS VIDEOS
+ARCHIVOS PRINCIPALES
 
-  Un PDF no reproduce video adentro: ningún lector de celular lo hace. Hay dos
-  caminos y los dos están puestos:
+  guia-entrena-como-las-grandes.pdf
+      Guía completa de 20 páginas A4. Incluye 15 ejercicios, dibujos de
+      cancha, paso a paso, dosis, puntos de observación, enlaces y QR.
+      Contiene 62 enlaces clicables.
 
-  1. Picar el nombre del video en el PDF y se abre YouTube (62 enlaces).
-  2. Escanear el cuadro QR con la cámara del celular. Esto también funciona
-     desde la hoja IMPRESA, que es donde un enlace no sirve de nada.
+  posters-para-el-grupo.pdf
+      13 láminas verticales listas para consultar en el celular o compartir
+      por WhatsApp. Contiene 13 enlaces clicables.
+
+  index.html
+      La misma guía en formato web, con fichas en tarjetas y botones grandes
+      para abrir los videos. No usa JavaScript ni recursos externos.
+
+  fuente/
+      Código fuente que genera y verifica los tres archivos anteriores.
+
+
+USO SIN INTERNET
+
+Descarga el PDF o guarda index.html antes de ir a la cancha. La guía, las
+fichas y las láminas seguirán disponibles sin conexión. Los videos de YouTube
+siempre requieren internet, aunque se abran mediante botón, enlace o QR.
+
+Un PDF no reproduce los videos dentro del documento. Para verlos puedes:
+
+  1. Tocar el nombre o botón del video.
+  2. Escanear el QR, también desde una hoja impresa.
+
+
+Actualización Técnica
+=====================
+
+La versión actual cuenta con soporte 100% Offline Optimizado. Las 15 tarjetas
+se muestran directamente mediante HTML y CSS nativo: no existe JavaScript que
+las oculte o que espere a que termine de cargar el DOM.
+
+Las 15 imágenes SVG de los ejercicios y los 15 códigos QR están integrados en
+index.html como recursos compactos. Todos usan carga diferida nativa mediante
+loading="lazy" y decodificación asíncrona mediante decoding="async", lo que
+reduce el trabajo inicial del navegador en celulares de recursos limitados.
+
+Al guardar index.html quedan disponibles sin conexión el contenido, los dibujos,
+las dosis y los QR. Abrir los videos enlazados sí requiere conexión a internet.
+Las rutas de guia-entrena-como-las-grandes.pdf y posters-para-el-grupo.pdf se
+mantienen relativas y funcionan cuando los tres archivos están en la misma carpeta.
+
+
+DISEÑO
+
+La identidad visual usa:
+
+  Azul cielo       #BFE9FF   fondos destacados
+  Azul de acción   #0B6FA4   botones, navegación y encabezados
+  Azul profundo    #06496E   títulos y contraste
+  Tinta            #102A3A   texto principal
+  Rosa             #A52357   acentos y bordes destacados
+  Rosa suave       #FFE3ED   fondos de apoyo y estados hover
+  Papel            #F7FCFF   fondo general
+
+Los fondos son pastel, pero el texto y los controles conservan tonos profundos
+para facilitar la lectura en el celular a plena luz del día. Los botones tienen
+un área táctil amplia y el foco de teclado permanece visible.
 
 
 ORDEN SUGERIDO PARA EMPEZAR
 
   Semana 1   ficha 01 (calentar) + ficha 14 (pared) + ficha 02 (rondo)
-  Semana 2   se suma la ficha 13 (tiro) y la 15 (zonas del pie)
+  Semana 2   se suman la ficha 13 (tiro) y la 15 (zonas del pie)
   Semana 3   fichas 10 y 11 (defensa)
   Semana 4   fichas 05, 07, 08 y 09 (transición y balón parado)
 
   Regla: una ficha por sesión, no cinco.
+
+
+VOLVER A GENERAR Y COMPROBAR
+
+Ejecuta los comandos desde la raíz del repositorio:
+
+  python3 fuente/build.py
+  python3 fuente/src/verify.py
+  python3 -m unittest discover -s fuente/src -p "test_*.py" -v
+
+build.py genera index.html y los dos PDF en la raíz. verify.py comprueba la
+estructura, las páginas, los enlaces, los QR y el HTML. El generador utiliza
+solo la biblioteca estándar de Python.

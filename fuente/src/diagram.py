@@ -7,17 +7,18 @@ import pdfkit as pk
 
 GRASS = '#2f8f57'
 GRASS2 = '#2a8250'
-LINE = '#e8f5ec'
-OURS = '#ff5c8a'
-OURS_D = '#8e1d47'
-RIVAL = '#1c1c22'
+LINE = '#FFFFFF'
+INK = '#102A3A'
+OURS = '#0B6FA4'
+OURS_D = '#06496E'
+RIVAL = INK
 CONE = '#ff9800'
-BALL = '#ffffff'
-RUN = '#ff2d6f'
-PASS = '#ffffff'
+BALL = '#FFFFFF'
+RUN = '#A52357'
+PASS = '#FFFFFF'
 SHOT = '#ffd23f'
-CHIP_BG = '#fff1f5'
-CHIP_TX = '#8e1d47'
+CHIP_BG = '#FFE3ED'
+CHIP_TX = '#A52357'
 
 
 def _fit(spec, x, y, w, h):
@@ -126,7 +127,7 @@ def boot_outline(cx, cy, bw, bh):
     ]
 
 
-def render(page, spec, x, y, w, h, ink='#241a1e'):
+def render(page, spec, x, y, w, h, ink=INK):
     T, s = _fit(spec, x, y, w, h)
     _pitch(page, spec, T, s)
     pr = spec.get('pr', 1.55)
@@ -148,7 +149,7 @@ def render(page, spec, x, y, w, h, ink='#241a1e'):
         elif k == 'target':
             _, tx, ty, tw, th = it
             a = T(tx, ty + th)
-            page.rect(a[0], a[1], tw * s, th * s, stroke='#ffffff', lw=1.6)
+            page.rect(a[0], a[1], tw * s, th * s, stroke=LINE, lw=1.6)
 
     for it in spec['items']:
         k = it[0]
@@ -165,7 +166,7 @@ def render(page, spec, x, y, w, h, ink='#241a1e'):
                 page.wavy(a[0], a[1], b[0], b[1], RUN, max(1.1, 0.24 * s),
                           amp=max(1.4, 0.4 * s), head=max(4, 1.05 * s))
             else:
-                page.line(a[0], a[1], b[0], b[1], it[5] if len(it) > 5 else '#ffffff',
+                page.line(a[0], a[1], b[0], b[1], it[5] if len(it) > 5 else PASS,
                           it[6] if len(it) > 6 else 1,
                           dash=it[7] if len(it) > 7 else None)
 
@@ -180,16 +181,16 @@ def render(page, spec, x, y, w, h, ink='#241a1e'):
             _, bx, by, bw, bh = it
             c = T(bx, by)
             segs = boot_outline(c[0], c[1], bw * s, bh * s)
-            page.bezier([segs[0]] + segs[1:], fill='#ffffff', stroke='#2b2b33', lw=1.4)
+            page.bezier([segs[0]] + segs[1:], fill='#FFFFFF', stroke=INK, lw=1.4)
             for i in range(4):
                 yy = c[1] - bh * s * 0.06 + i * bh * s * 0.1
                 page.line(c[0] - bw * s * 0.19, yy, c[0] + bw * s * 0.13, yy - bh * s * 0.02,
-                          '#2b2b33', 1.0)
+                          INK, 1.0)
         elif k == 'mark':
             _, mx, my, lx, ly, label = it[:6]
             a, b = T(mx, my), T(lx, ly)
-            page.line(a[0], a[1], b[0], b[1], '#e8443a', 1.1)
-            page.circle(a[0], a[1], max(2.0, 0.62 * s), fill='#f24236', stroke='#ffffff', lw=1.0)
+            page.line(a[0], a[1], b[0], b[1], RUN, 1.1)
+            page.circle(a[0], a[1], max(2.0, 0.62 * s), fill='#D94F87', stroke='#FFFFFF', lw=1.0)
             al = 'left' if lx > mx else 'right'
             _chip(page, b[0], b[1], label, max(4.6, 0.95 * s), al)
         elif k in ('p', 'gk'):
@@ -201,7 +202,7 @@ def render(page, spec, x, y, w, h, ink='#241a1e'):
             if len(it) > 3 and it[3]:
                 fs = r * 1.16
                 page.text(p[0], p[1] - fs * 0.52, str(it[3]), fs, True,
-                          color='#ffffff' if k == 'p' else '#3a2c00', align='center')
+                          color='#FFFFFF' if k == 'p' else '#3a2c00', align='center')
         elif k == 'r':
             p = T(it[1], it[2])
             r = pr * 0.94 * s
@@ -209,12 +210,12 @@ def render(page, spec, x, y, w, h, ink='#241a1e'):
             page.circle(p[0], p[1], r, fill=RIVAL, stroke='#5b5b66', lw=max(0.6, 0.14 * s))
             if len(it) > 3 and it[3]:
                 fs = r * 1.1
-                page.text(p[0], p[1] - fs * 0.52, str(it[3]), fs, True, color='#ffffff', align='center')
+                page.text(p[0], p[1] - fs * 0.52, str(it[3]), fs, True, color='#FFFFFF', align='center')
         elif k == 'b':
             p = T(it[1], it[2])
             r = max(1.9, pr * 0.5 * s)
-            page.circle(p[0], p[1], r, fill=BALL, stroke='#1c1c22', lw=max(0.6, 0.14 * s))
-            page.circle(p[0], p[1], r * 0.34, fill='#1c1c22')
+            page.circle(p[0], p[1], r, fill=BALL, stroke=INK, lw=max(0.6, 0.14 * s))
+            page.circle(p[0], p[1], r * 0.34, fill=INK)
 
     for it in spec['items']:
         if it[0] == 't':

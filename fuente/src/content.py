@@ -18,7 +18,7 @@ V = {
     'tiro': YT + '7G50ToIfd7Q',
     'rondo1': YT + 'dKsjSQ3ICzs',
     'rondo2': YT + 'h3dz4PftVq0',
-    'rondo3': YT + 'V30FAfdBX7c',
+    'rondo3': BUSCA + 'rondos+y+juegos+de+posicion+futbol+entrenamiento',
     'linea': YT + 'wmW6KpKlHLU',
     'bloque': YT + 'sWDo_Ald7hg',
     'portera': YT + 'sW7Z7gwrjoc',

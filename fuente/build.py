@@ -3,24 +3,33 @@
 import os
 import re
 import sys
+import tempfile
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src'))
 import pdfkit as pk
 import diagram as dg
 import content as C
+import webstyle as WS
+import webassets as WA
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+SOURCE_DIR = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.dirname(SOURCE_DIR)
 
-# paleta clara (guía imprimible)
-BG = '#fffafc'
-INK = '#231318'
-MUT = '#7a626c'
-PINK = '#e5296b'
-PINKD = '#a01048'
-CARD = '#fff0f5'
-DARK = '#1b0f14'
-LIME = '#eef7d6'
-LIMED = '#4c6b12'
+# Sistema visual: cielo como identidad, azul profundo para contraste y rosa como acento.
+# Nunca se usa texto blanco sobre SKY: no alcanza el contraste necesario.
+PAPER = '#f7fcff'
+BG = PAPER
+INK = '#102a3a'
+MUT = '#486476'
+SKY = '#bfe9ff'
+BLUE = '#0b6fa4'
+BLUED = '#06496e'
+ROSE = '#a52357'
+ROSE_SOFT = '#ffe3ed'
+CARD = '#eef8fd'
+DARK = '#073b59'
+LIME = '#eef8df'
+LIMED = '#385b12'
 
 W, H = 595.28, 841.89
 M = 42.0
@@ -47,35 +56,35 @@ def lead_split(s):
 
 # ---------------------------------------------------------------- guía
 def header(p, left, right):
-    p.rect(0, 0, W, 26, fill=CARD)
-    p.text(M, 8.5, left, 7.6, True, color=PINKD)
+    p.rect(0, 0, W, 26, fill=SKY)
+    p.text(M, 8.5, left, 7.6, True, color=BLUED)
     p.text(W - M, 8.5, right, 7.6, color=MUT, align='right')
 
 
 def footer(p, n, total):
-    p.line(M, H - 34, W - M, H - 34, '#f0dae3', 0.8)
+    p.line(M, H - 34, W - M, H - 34, '#c5dfeb', 0.8)
     p.text(M, H - 28, 'Guía de entrenamiento · fútbol femenil sub-17', 7.2, color=MUT)
-    p.text(W - M, H - 28, '%d / %d' % (n, total), 7.2, True, color=PINKD, align='right')
+    p.text(W - M, H - 28, '%d / %d' % (n, total), 7.2, True, color=BLUED, align='right')
 
 
 def cover(doc, total):
     p = doc.page(W, H)
     p.rect(0, 0, W, H, fill=DARK)
-    p.rect(0, 0, W, 6, fill=PINK)
+    p.rect(0, 0, W, 6, fill=SKY)
     y = 96
-    p.text(M, y, 'SUB-17 FEMENIL · GUÍA DE TRABAJO', 9.5, True, color='#ff8ab0')
+    p.text(M, y, 'SUB-17 FEMENIL · GUÍA DE TRABAJO', 9.5, True, color=ROSE_SOFT)
     y += 34
     p.text(M, y, 'ENTRENA COMO', 44, True, color='#ffffff')
     y += 48
-    p.text(M, y, 'LAS GRANDES', 44, True, color=PINK)
+    p.text(M, y, 'LAS GRANDES', 44, True, color=SKY)
     y += 66
     p.para(M, y, 'Quince ejercicios dibujados, con los videos de cada uno. Lo que hacen los '
                  'mejores equipos femeniles del mundo, adaptado a una cancha compartida, '
-                 'botellas de refresco y una pared.', 11.5, CW - 150, 17, color='#e7cdd6')
+                 'botellas de refresco y una pared.', 11.5, CW - 150, 17, color='#d9edf7')
     y += 76
-    p.line(M, y, W - M, y, '#3a222c', 1)
+    p.line(M, y, W - M, y, '#2a6582', 1)
     y += 22
-    p.text(M, y, 'LO QUE HAY ADENTRO', 9, True, color='#ff8ab0')
+    p.text(M, y, 'LO QUE HAY ADENTRO', 9, True, color=ROSE_SOFT)
     y += 20
     col = (CW - 20) / 2
     n = len(C.DRILLS)
@@ -83,35 +92,33 @@ def cover(doc, total):
     for i, d in enumerate(C.DRILLS):
         cx = M + (0 if i < per else col + 20)
         cy = y + (i if i < per else i - per) * 19
-        p.text(cx, cy, d['n'], 8.5, True, color=PINK)
-        p.text(cx + 20, cy, d['title'], 10, color='#f3e6ea')
+        p.text(cx, cy, d['n'], 8.5, True, color=SKY)
+        p.text(cx + 20, cy, d['title'], 10, color='#edf8fc')
     y += per * 19 + 26
-    p.line(M, y, W - M, y, '#3a222c', 1)
+    p.line(M, y, W - M, y, '#2a6582', 1)
     y += 20
-    facts = [('Fichas', '%d con dibujo' % n), ('Videos', '%d enlaces' % nlinks()),
+    facts = [('Fichas', '%d con dibujo' % n), ('Recursos', '%d accesos' % resource_count()),
              ('Jugadoras', 'de 1 a 11'), ('Material', 'balón, botellas, pared')]
     fw = CW / 4
     for i, (k, v) in enumerate(facts):
-        p.text(M + i * fw, y, k.upper(), 7.4, True, color='#a97f8e')
+        p.text(M + i * fw, y, k.upper(), 7.4, True, color='#acd4e6')
         p.text(M + i * fw, y + 13, v, 10.5, True, color='#ffffff')
     qy = H - 190
-    p.text(M, qy - 16, 'ESCANEA Y EMPIEZA POR AQUÍ', 8.4, True, color='#ff8ab0')
+    p.text(M, qy - 16, 'ESCANEA Y EMPIEZA POR AQUÍ', 8.4, True, color=ROSE_SOFT)
     pk.draw_qr(p, C.V['sola'], M, qy, 92, fg=DARK, bg='#ffffff')
-    p.text(M + 104, qy + 16, 'Guía completa para', 10, color='#e7cdd6')
-    p.text(M + 104, qy + 32, 'entrenar sola', 10, color='#e7cdd6')
-    p.text(M + 104, qy + 54, 'Todos los nombres de video', 9, color='#a97f8e')
-    p.text(M + 104, qy + 68, 'de esta guía se pueden picar.', 9, color='#a97f8e')
+    p.text(M + 104, qy + 16, 'Guía completa para', 10, color='#d9edf7')
+    p.text(M + 104, qy + 32, 'entrenar sola', 10, color='#d9edf7')
+    p.text(M + 104, qy + 54, 'Todos los nombres de video', 9, color='#acd4e6')
+    p.text(M + 104, qy + 68, 'de esta guía se pueden picar.', 9, color='#acd4e6')
     p.link(M, qy, 92, 92, C.V['sola'])
     p.text(M, H - 62, 'Se imprime en hojas tamaño carta o A4 · cada ficha en una hoja',
-           9, color='#8a6472')
+           9, color='#acd4e6')
     return p
 
 
-def nlinks():
-    n = 0
-    for d in C.DRILLS:
-        n += len(d['links'])
-    return n * 2 + 40
+def resource_count():
+    """Número de tarjetas de recurso en las fichas, sin duplicar anotaciones PDF."""
+    return sum(len(d['links']) for d in C.DRILLS)
 
 
 def page_uso(doc):
@@ -136,9 +143,9 @@ def page_uso(doc):
          'diferencia sin que nadie tenga que decírsela.'),
     ]
     for i, (a, b) in enumerate(reglas):
-        p.text(M, y + 1, '%02d' % (i + 1), 11, True, color=PINK)
+        p.text(M, y + 1, '%02d' % (i + 1), 11, True, color=BLUE)
         yy = p.rich(M + 26, y, [(a + ' ', 'b'), (b, 'r')], 10.4, CW - 26, 15, INK)
-        p.line(M, yy + 4, W - M, yy + 4, '#f2dde5', 0.7)
+        p.line(M, yy + 4, W - M, yy + 4, '#d4e8f1', 0.7)
         y = yy + 14
 
     y += 12
@@ -151,7 +158,7 @@ def page_uso(doc):
         ('pass', 4, 5, 10, 5), ('run', 12, 5, 18, 5), ('drib', 20, 5, 26, 5),
     ]}
     dg.render(p, inner, M + 12, y + 10, CW - 24, box_h - 46)
-    ley = [('Nosotras (rosa)', PINK), ('Rival (negro)', '#1c1c22'), ('Balón', '#8a6472'),
+    ley = [('Nosotras (azul)', BLUE), ('Rival (negro)', '#1c1c22'), ('Balón', MUT),
            ('Cono o botella', '#c97a00')]
     cw2 = (CW - 24) / 4
     for i, (t, c) in enumerate(ley):
@@ -175,7 +182,7 @@ def drill_page(p, d, num):
     y = 54
     p.text(M, y, d['title'], 25, True, color=INK, maxw=CW)
     y += 32
-    p.text(M, y, d['sub'], 11, italic=True, color=PINK, maxw=CW)
+    p.text(M, y, d['sub'], 11, italic=True, color=BLUE, maxw=CW)
     y += 22
     ih = p.para_h(d['idea'], 10.2, CW, 14.6)
     p.para(M, y, d['idea'], 10.2, CW, 14.6, color=MUT)
@@ -196,24 +203,24 @@ def drill_page(p, d, num):
     avail = (H - 46) - y - text_h - links_h - 26
     dw = CW
     dh = min(dg.height_for(D_of(d), dw - 20), 248.0, max(120.0, avail))
-    p.roundrect(M, y, CW, dh + 20, 8, fill='#f6e3ea')
+    p.roundrect(M, y, CW, dh + 20, 8, fill='#e3f5fd')
     dg.render(p, D_of(d), M + 10, y + 10, CW - 20, dh)
     y += dh + 32
 
     # pasos
-    p.text(M, y, 'PASO A PASO', 8.6, True, color=PINKD)
+    p.text(M, y, 'PASO A PASO', 8.6, True, color=BLUED)
     yy = y + 18
     for i, s in enumerate(d['steps']):
-        p.circle(M + 6, yy + 5, 6.6, fill=PINK)
+        p.circle(M + 6, yy + 5, 6.6, fill=BLUE)
         p.text(M + 6, yy + 0.6, str(i + 1), 8, True, color='#ffffff', align='center')
         yy = p.rich(M + 22, yy, lead_split(s), 9.9, lcol - 22, 14, INK) + 7
 
     # dosis
     rx = M + lcol + 18
     p.roundrect(rx, y - 6, rcol, dose_h, 7, fill=DARK)
-    p.text(rx + 12, y + 6, 'DOSIS', 8.4, True, color='#ff8ab0')
+    p.text(rx + 12, y + 6, 'DOSIS', 8.4, True, color=SKY)
     for i, (k, v) in enumerate(d['dose']):
-        p.text(rx + 12, y + 24 + i * 22, k.upper(), 7.2, color='#a97f8e')
+        p.text(rx + 12, y + 24 + i * 22, k.upper(), 7.2, color='#b8dcea')
         p.text(rx + 12, y + 34 + i * 22, v, 9.4, True, color='#ffffff')
     wy = y - 6 + dose_h + 12
     p.roundrect(rx, wy, rcol, watch_h, 7, fill=LIME)
@@ -222,14 +229,14 @@ def drill_page(p, d, num):
 
     # enlaces + QR
     ly = H - 46 - links_h
-    p.line(M, ly - 10, W - M, ly - 10, '#f0dae3', 0.8)
-    p.text(M, ly, 'VE EL VIDEO ANTES DE BAJAR AL CAMPO', 8.6, True, color=PINKD)
+    p.line(M, ly - 10, W - M, ly - 10, '#c5dfeb', 0.8)
+    p.text(M, ly, 'VE EL VIDEO ANTES DE BAJAR AL CAMPO', 8.6, True, color=BLUED)
     for i, (tag, tit, url) in enumerate(d['links']):
         yy = ly + 20 + i * 21
-        p.roundrect(M, yy - 1, 40, 13, 3, fill=PINK)
+        p.roundrect(M, yy - 1, 40, 13, 3, fill=BLUE)
         p.text(M + 20, yy + 1.4, tag.upper(), 6.8, True, color='#ffffff', align='center')
-        w = p.text(M + 48, yy, tit, 10, True, color='#1b4a8f')
-        p.line(M + 48, yy + 12.5, M + 48 + w, yy + 12.5, '#1b4a8f', 0.6)
+        w = p.text(M + 48, yy, tit, 10, True, color=BLUED)
+        p.line(M + 48, yy + 12.5, M + 48 + w, yy + 12.5, BLUED, 0.6)
         p.link(M + 48, yy - 2, w + 4, 16, url)
         p.text(M + 48 + w + 8, yy + 1.2, short(url), 7, color=MUT,
                maxw=max(30.0, (W - M - 96) - (M + 48 + w + 8)))
@@ -257,7 +264,7 @@ def page_semana(doc, num):
     y += 44
     p.rect(M, y, CW, 20, fill=DARK)
     for cx, t in ((M + 10, 'DÍA'), (M + 100, 'QUÉ TOCA'), (W - M - 80, 'CARGA')):
-        p.text(cx, y + 6, t, 7.6, True, color='#ff8ab0')
+        p.text(cx, y + 6, t, 7.6, True, color=SKY)
     y += 20
     for i, (dia, qué, carga) in enumerate(C.SEMANA):
         h = 26
@@ -265,7 +272,7 @@ def page_semana(doc, num):
             p.rect(M, y, CW, h, fill=CARD)
         p.text(M + 10, y + 8, dia, 10, True, color=INK)
         p.text(M + 100, y + 8, qué, 9.8, color=INK)
-        p.text(W - M - 80, y + 8, carga, 9.4, True, color=PINKD)
+        p.text(W - M - 80, y + 8, carga, 9.4, True, color=BLUED)
         y += h
     y += 26
     p.text(M, y, 'Según cuántas lleguen', 20, True, color=INK)
@@ -275,12 +282,12 @@ def page_semana(doc, num):
     y += 22
     p.rect(M, y, CW, 20, fill=DARK)
     for cx, t in ((M + 10, 'LLEGARON'), (M + 90, 'QUÉ FICHAS'), (M + 320, 'EJERCICIO ESTRELLA')):
-        p.text(cx, y + 6, t, 7.6, True, color='#ff8ab0')
+        p.text(cx, y + 6, t, 7.6, True, color=SKY)
     y += 20
     for i, (n, f, e) in enumerate(C.MENU):
         if i % 2 == 0:
             p.rect(M, y, CW, 24, fill=CARD)
-        p.text(M + 10, y + 7, n, 10, True, color=PINK)
+        p.text(M + 10, y + 7, n, 10, True, color=BLUE)
         p.text(M + 90, y + 7, f, 9.6, color=INK)
         p.text(M + 320, y + 7, e, 9.6, color=MUT)
         y += 24
@@ -289,12 +296,12 @@ def page_semana(doc, num):
     y += 28
     p.rect(M, y, CW, 20, fill=DARK)
     for cx, t in ((M + 10, 'SEMANA'), (M + 90, 'PALABRA'), (M + 220, 'QUÉ SE OBSERVA')):
-        p.text(cx, y + 6, t, 7.6, True, color='#ff8ab0')
+        p.text(cx, y + 6, t, 7.6, True, color=SKY)
     y += 20
     for i, (n, w2, q) in enumerate(C.CORRECCION):
         if i % 2 == 0:
             p.rect(M, y, CW, 22, fill=CARD)
-        p.text(M + 10, y + 6, n, 9.8, True, color=PINK)
+        p.text(M + 10, y + 6, n, 9.8, True, color=BLUE)
         p.text(M + 90, y + 6, w2, 9.8, True, color=INK)
         p.text(M + 220, y + 6, q, 9.6, color=MUT)
         y += 22
@@ -316,20 +323,20 @@ def page_hoja(doc, num):
     p.rect(M, y, CW, 22, fill=DARK)
     cx = M
     for t, w in cols:
-        p.text(cx + 6, y + 7, t, 7, True, color='#ff8ab0')
+        p.text(cx + 6, y + 7, t, 7, True, color=SKY)
         cx += w
     y += 22
     for r in range(18):
-        p.rect(M, y, CW, 30, stroke='#e9cfd9', lw=0.7)
+        p.rect(M, y, CW, 30, stroke='#c9e0eb', lw=0.7)
         cx = M
         for t, w in cols[:-1]:
             cx += w
-            p.line(cx, y, cx, y + 30, '#e9cfd9', 0.7)
+            p.line(cx, y, cx, y + 30, '#c9e0eb', 0.7)
         y += 30
     y += 24
     p.roundrect(M, y, CW, 46, 8, fill=CARD)
     p.text(M + 16, y + 15, 'Ver, copiar, repetir, grabarse y corregir. Eso es tener entrenador.',
-           13, True, color=PINKD)
+           13, True, color=BLUED)
     footer(p, num, TOTAL)
 
 
@@ -362,7 +369,7 @@ def page_anexo(doc, num):
             break
         p.roundrect(cx, cy, cwid, ch, 7, fill=CARD)
         pk.draw_qr(p, url, cx + (cwid - 62) / 2, cy + 8, 62, fg=INK, bg='#ffffff')
-        p.text(cx + cwid / 2, cy + 74, 'FICHA ' + fn, 6.8, True, color=PINK, align='center')
+        p.text(cx + cwid / 2, cy + 74, 'FICHA ' + fn, 6.8, True, color=BLUE, align='center')
         for j, ln in enumerate(p.wrap(tit, 8.4, cwid - 14, True)[:3]):
             p.text(cx + cwid / 2, cy + 86 + j * 10.5, ln, 8.4, True, color=INK, align='center')
         p.link(cx, cy, cwid, ch, url)
@@ -371,41 +378,41 @@ def page_anexo(doc, num):
 
 # ---------------------------------------------------------------- láminas
 PW, PH = 340.0, 604.0
-PBG = '#150810'
-PCARD = '#25101b'
+PBG = PAPER
+PCARD = '#e7f6fd'
 
 
 def poster(doc, po, idx, total):
     p = doc.page(PW, PH)
     p.rect(0, 0, PW, PH, fill=PBG)
-    p.rect(0, 0, PW, 5, fill=PINK)
+    p.rect(0, 0, PW, 5, fill=SKY)
     m = 20.0
     cw = PW - m * 2
     y = 26.0
     tw = pk.width(po['tag'], 7.6, True)
-    p.roundrect(m, y, tw + 16, 15, 7.5, fill=PINK)
+    p.roundrect(m, y, tw + 16, 15, 7.5, fill=BLUE)
     p.text(m + 8, y + 3.2, po['tag'], 7.6, True, color='#ffffff')
     y += 26
     lines = po['title'].split('\n')
     ts = 30 if max(len(l) for l in lines) <= 15 else 24
     for l in lines:
-        p.text(m, y, l, ts, True, color='#ffffff', maxw=cw)
+        p.text(m, y, l, ts, True, color=INK, maxw=cw)
         y += ts * 1.06
     y += 4
-    p.text(m, y, po['sub'], 9.6, italic=True, color='#ff8ab0', maxw=cw)
+    p.text(m, y, po['sub'], 9.8, italic=True, color=ROSE, maxw=cw)
     y += 22
 
     if po.get('kind') == 'cover':
-        p.line(m, y, PW - m, y, '#3a222c', 1)
+        p.line(m, y, PW - m, y, '#bdddea', 1)
         y += 14
-        p.text(m, y, 'LO QUE HAY ADENTRO', 8, True, color='#ff8ab0')
+        p.text(m, y, 'LO QUE HAY ADENTRO', 8, True, color=BLUED)
         y += 16
         for it in po['index']:
-            p.text(m, y, it, 9.2, color='#f0e2e7', maxw=cw)
+            p.text(m, y, it, 9.4, color=INK, maxw=cw)
             y += 13.4
         y += 8
     else:
-        pts_h = sum(p.rich_h(lead_split(a + ' ' + b), 9.4, cw - 22, 13) + 9
+        pts_h = sum(p.rich_h(lead_split(a + ' ' + b), 9.8, cw - 22, 13.5) + 9
                     for a, b in po['points'])
         qbase = PH - 108
         if po.get('dia'):
@@ -415,109 +422,156 @@ def poster(doc, po, idx, total):
             dg.render(p, C.D[po['dia']], m + 8, y + 8, cw - 16, dh)
             y += dh + 24
         for a, b in po['points']:
-            p.rect(m, y + 1, 2.6, 11, fill=PINK)
-            y = p.rich(m + 11, y, [(a + ' ', 'b'), (b, 'r')], 9.4, cw - 22, 13, '#f3e6ea') + 9
+            p.rect(m, y + 1, 2.6, 11, fill=BLUE)
+            y = p.rich(m + 11, y, [(a + ' ', 'b'), (b, 'r')], 9.8, cw - 22, 13.5, INK) + 9
 
     qs = 62
     qy = PH - 84
-    p.line(m, qy - 14, PW - m, qy - 14, '#3a222c', 1)
-    pk.draw_qr(p, po['qr'], m, qy, qs, fg=PBG, bg='#ffffff')
+    p.line(m, qy - 14, PW - m, qy - 14, '#bdddea', 1)
+    pk.draw_qr(p, po['qr'], m, qy, qs, fg=INK, bg='#ffffff')
     p.link(m, qy, qs, qs, po['qr'])
-    p.text(m + qs + 12, qy + 6, 'ESCANEA Y VE EL VIDEO', 7.6, True, color=PINK)
+    p.text(m + qs + 12, qy + 6, 'ESCANEA Y VE EL VIDEO', 7.6, True, color=BLUE)
     for j, ln in enumerate(p.wrap(po['qrlabel'], 9, cw - qs - 16)[:2]):
-        p.text(m + qs + 12, qy + 20 + j * 12, ln, 9, color='#e7cdd6')
-    p.text(m + qs + 12, qy + 48, 'SUB-17 FEMENIL · %d de %d' % (idx, total), 7.2, color='#8a6472')
+        p.text(m + qs + 12, qy + 20 + j * 12, ln, 9, color=INK)
+    p.text(m + qs + 12, qy + 48, 'SUB-17 FEMENIL · %d de %d' % (idx, total), 7.2, color=MUT)
 
 
 # ---------------------------------------------------------------- HTML
 def html():
     def esc(s):
-        return (s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'))
+        return (str(s).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+                .replace('"', '&quot;').replace("'", '&#39;'))
 
     fichas = []
     for d in C.DRILLS:
-        pasos = ''.join('<li>%s</li>' % esc(s) for s in d['steps'])
-        dosis = ''.join('<div><dt>%s</dt><dd>%s</dd></div>' % (esc(k), esc(v)) for k, v in d['dose'])
+        spec = C.D[d['dia']]
+        diagram_w, diagram_h = WA.diagram_dimensions(spec)
+        diagram = (
+            '<figure class="diagram-card"><img class="exercise-diagram" '
+            'src="%s" alt="Diagrama táctico: %s" width="%d" height="%d" '
+            'loading="lazy" decoding="async"><figcaption>%s</figcaption></figure>'
+            % (WA.diagram_data_uri(spec, d['title']), esc(d['title']), diagram_w,
+               diagram_h, esc(d['sub'])))
+        qr = (
+            '<img class="qr" src="%s" alt="Código QR para %s" width="256" '
+            'height="256" loading="lazy" decoding="async">'
+            % (WA.qr_data_uri(d['qr'], 'Código QR · ' + d['title']), esc(d['title'])))
+        pasos = ''.join('<li><span>%s</span></li>' % esc(s) for s in d['steps'])
+        dosis = ''.join(
+            '<div class="dose-item"><dt>%s</dt><dd>%s</dd></div>' % (esc(k), esc(v))
+            for k, v in d['dose'])
         links = ''.join(
-            '<a class="v" href="%s" target="_blank" rel="noopener">'
-            '<b>%s</b><span>%s</span><i>ver &rsaquo;</i></a>' % (u, esc(t.upper()), esc(ti))
+            '<a class="video-card" href="%s" target="_blank" rel="noopener noreferrer" '
+            'aria-label="Abrir recurso: %s; requiere internet y abre otra pestaña">'
+            '<span class="video-tag">%s</span>'
+            '<span class="video-copy"><strong>%s</strong>'
+            '<small>%s · requiere internet</small></span>'
+            '<span class="external" aria-hidden="true">↗</span></a>'
+            % (esc(u), esc(ti), esc(t.upper()), esc(ti),
+               'YouTube' if ('youtu.be/' in u or 'youtube.com/' in u) else esc(short(u)))
             for (t, ti, u) in d['links'])
+        title_id = 'titulo-f%s' % d['n']
+        steps_id = 'pasos-f%s' % d['n']
         fichas.append(
-            '<article id="f%s"><header><span class="n">FICHA %s</span>'
-            '<span class="cat">%s</span><span class="team">%s</span></header>'
-            '<h2>%s</h2><p class="sub">%s</p><p class="idea">%s</p>'
-            '<h3>Paso a paso</h3><ol>%s</ol>'
-            '<div class="watch"><b>Qué mira la compañera</b>%s</div>'
-            '<dl class="dose">%s</dl><div class="links">%s</div></article>'
-            % (d['n'], d['n'], esc(d['cat']), esc(d['team']), esc(d['title']),
-               esc(d['sub']), esc(d['idea']), pasos, esc(d['watch']), dosis, links))
+            '<article class="training-card" id="f%s" aria-labelledby="%s">'
+            '<header class="card-heading"><span class="number">FICHA %s</span>'
+            '<span class="category">%s</span><span class="team">%s</span></header>'
+            '<h2 id="%s">%s</h2><p class="subtitle">%s</p><p class="idea">%s</p>'
+            '%s<div class="lesson-grid"><section aria-labelledby="%s">'
+            '<h3 id="%s">Paso a paso</h3><ol class="steps">%s</ol></section>'
+            '<aside class="coach-note"><h3>Qué mira la compañera</h3><p>%s</p>'
+            '<dl class="dose">%s</dl></aside></div>'
+            '<section class="media-section" aria-label="Videos y código QR de la ficha %s">'
+            '<div class="section-title"><h3>Videos para preparar la sesión</h3>'
+            '<span>Abren en otra pestaña</span></div>'
+            '<div class="media-grid"><div class="video-list">%s</div>'
+            '<a class="qr-card" href="%s" target="_blank" rel="noopener noreferrer" '
+            'aria-label="Abrir recurso QR de la ficha %s; requiere internet">%s'
+            '<span><strong>Escanea en la cancha</strong><small>La guía funciona sin conexión; '
+            'el video necesita internet.</small></span></a></div></section>'
+            '<a class="back-link" href="#indice">Volver al índice ↑</a></article>'
+            % (d['n'], title_id, d['n'], esc(d['cat']), esc(d['team']), title_id,
+               esc(d['title']), esc(d['sub']), esc(d['idea']), diagram, steps_id, steps_id, pasos,
+               esc(d['watch']), dosis, d['n'], links, esc(d['qr']), d['n'],
+               qr))
 
-    toc = ''.join('<a href="#f%s"><b>%s</b>%s</a>' % (d['n'], d['n'], esc(d['title']))
-                  for d in C.DRILLS)
+    toc = ''.join(
+        '<a class="toc-link" href="#f%s"><span>%s</span><strong>%s</strong></a>'
+        % (d['n'], d['n'], esc(d['title'])) for d in C.DRILLS)
 
-    css = """
-*{box-sizing:border-box}body{margin:0;background:#150810;color:#f3e6ea;
-font:16px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
-.wrap{max-width:860px;margin:auto;padding:0 20px 60px}
-header.top{padding:48px 0 28px;border-bottom:1px solid #3a222c}
-.kick{color:#ff8ab0;font-size:12px;letter-spacing:.18em;font-weight:700}
-h1{font-size:clamp(34px,9vw,60px);line-height:1.02;margin:14px 0 10px;letter-spacing:-.02em}
-h1 em{color:#e5296b;font-style:normal}
-.lede{color:#c9b1ba;max-width:52ch}
-.dl{display:flex;flex-wrap:wrap;gap:12px;margin:26px 0 6px}
-.dl a{flex:1 1 240px;background:#e5296b;color:#fff;text-decoration:none;padding:16px 18px;
-border-radius:12px;font-weight:700;display:block}
-.dl a span{display:block;font-weight:400;font-size:13px;opacity:.85;margin-top:3px}
-.dl a.alt{background:#25101b;color:#ff8ab0;border:1px solid #3a222c}
-nav{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:0 20px;
-padding:26px 0;border-bottom:1px solid #3a222c}
-nav a{display:flex;gap:10px;padding:7px 0;color:#c9b1ba;text-decoration:none;font-size:14px}
-nav a b{color:#e5296b}
-article{padding:34px 0;border-bottom:1px solid #3a222c}
-article header{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:11px;
-letter-spacing:.12em;font-weight:700}
-.n{background:#e5296b;color:#fff;padding:3px 8px;border-radius:4px}
-.cat{color:#ff8ab0}.team{color:#8a6472;font-weight:400;letter-spacing:0}
-h2{font-size:27px;margin:12px 0 4px;letter-spacing:-.01em}
-.sub{color:#ff8ab0;font-style:italic;margin:0 0 12px}
-.idea{color:#c9b1ba}
-h3{font-size:12px;letter-spacing:.14em;color:#ff8ab0;margin:22px 0 8px}
-ol{padding-left:22px;margin:0}ol li{margin-bottom:8px}
-.watch{background:#1e2a10;border-left:3px solid #a8c94a;padding:12px 14px;border-radius:0 8px 8px 0;
-margin:18px 0;color:#dcecc0;font-size:15px}
-.watch b{display:block;font-size:11px;letter-spacing:.12em;color:#a8c94a;margin-bottom:4px}
-.dose{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;
-background:#25101b;padding:14px;border-radius:10px;margin:0 0 18px}
-.dose dt{font-size:10px;letter-spacing:.12em;color:#8a6472}
-.dose dd{margin:2px 0 0;font-weight:700}
-.links{display:grid;gap:8px}
-a.v{display:flex;align-items:center;gap:12px;background:#25101b;border:1px solid #3a222c;
-border-radius:10px;padding:13px 15px;color:#f3e6ea;text-decoration:none}
-a.v b{background:#e5296b;color:#fff;font-size:10px;padding:3px 7px;border-radius:4px;
-letter-spacing:.1em}
-a.v span{flex:1;font-weight:600}
-a.v i{color:#ff8ab0;font-style:normal;font-size:13px}
-footer{padding:44px 0;text-align:center;color:#8a6472;font-size:13px}
-footer p{color:#e5296b;font-size:22px;font-weight:700;max-width:22ch;margin:0 auto 14px}
-"""
+    css = WS.CSS
     return ('<!doctype html><html lang="es"><head><meta charset="utf-8">'
-            '<meta name="viewport" content="width=device-width,initial-scale=1">'
-            '<title>Entrena como las grandes · sub-17 femenil</title>'
-            '<style>%s</style></head><body><div class="wrap">'
-            '<header class="top"><div class="kick">SUB-17 FEMENIL · GUÍA DE TRABAJO</div>'
+            '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
+            '<meta name="theme-color" content="#bfe9ff" media="(prefers-color-scheme:light)">'
+            '<meta name="theme-color" content="#183f53" media="(prefers-color-scheme:dark)">'
+            '<meta name="description" content="Guía didáctica de entrenamiento de fútbol femenil '
+            'sub-17: 15 fichas, PDF imprimible, láminas y videos.">'
+            '<title>Entrena como las grandes · fútbol femenil sub-17</title>'
+            '<style>%s</style></head><body>'
+            '<a class="skip-link" href="#contenido">Saltar al contenido</a>'
+            '<header class="site-header"><div class="shell">'
+            '<nav class="top-nav" aria-label="Navegación principal">'
+            '<a class="brand" href="#inicio" aria-label="Entrena como las grandes, inicio">'
+            '<span class="brand-mark" aria-hidden="true"><svg class="brand-ball" viewBox="0 0 24 24" '
+            'focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" '
+            'stroke-width="1.8"/><path d="m12 7 3 2.2-1.1 3.5h-3.8L9 9.2 12 7Z'
+            'M9 9.2 5.9 8M15 9.2 18.1 8M10.1 12.7 8.4 16M13.9 12.7 15.6 16" '
+            'fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>'
+            '</svg></span>'
+            '<span>Entrena como las grandes</span></a>'
+            '<div class="top-links"><a href="#descargas">Descargas</a>'
+            '<a href="#indice">Fichas</a></div></nav>'
+            '<div class="hero" id="inicio"><div><p class="eyebrow">Fútbol femenil · Sub-17</p>'
             '<h1>Entrena como <em>las grandes</em></h1>'
-            '<p class="lede">Quince ejercicios con dibujo de cancha y el video de cada uno. '
-            'Toca cualquier nombre de video y se abre en YouTube. Para los dibujos, '
-            'descarga el PDF.</p>'
-            '<div class="dl">'
-            '<a href="guia-entrena-como-las-grandes.pdf">Descargar la guía en PDF'
-            '<span>%d hojas con los dibujos, la dosis y los códigos QR</span></a>'
-            '<a class="alt" href="posters-para-el-grupo.pdf">Descargar las láminas'
-            '<span>%d láminas verticales para mandar al grupo</span></a>'
-            '</div></header><nav>%s</nav>%s'
-            '<footer><p>Ver, copiar, repetir, corregir.</p>'
-            'Guía de entrenamiento · fútbol femenil sub-17</footer>'
-            '</div></body></html>' % (css, TOTAL, len(C.POSTERS), toc, ''.join(fichas)))
+            '<p class="lede">Quince ejercicios explicados paso a paso, con dosis, puntos de '
+            'observación, videos y códigos QR. Diseñada para leerse rápido en el celular y '
+            'llevarse a la cancha.</p>'
+            '<div class="hero-actions"><a class="button" '
+            'href="guia-entrena-como-las-grandes.pdf">Descargar guía PDF</a>'
+            '<a class="button secondary" href="#f01">Empezar con la ficha 01</a></div></div>'
+            '<aside class="hero-card" aria-label="Resumen de la guía">'
+            '<h2>Todo el material, en una vista</h2><dl class="facts">'
+            '<div><dt>Fichas</dt><dd>%d</dd></div><div><dt>Guía A4</dt><dd>%d pág.</dd></div>'
+            '<div><dt>Láminas</dt><dd>%d</dd></div><div><dt>Dependencias</dt><dd>0</dd></div>'
+            '</dl><p class="offline-note"><strong>Lista para usar sin internet.</strong> '
+            'Guarda el HTML o los PDF antes de salir. Solo los videos necesitan conexión.</p>'
+            '</aside></div></div></header>'
+            '<main id="contenido"><div class="shell">'
+            '<section class="downloads" id="descargas" aria-labelledby="titulo-descargas">'
+            '<div class="section-heading"><div><p class="eyebrow">Acceso rápido</p>'
+            '<h2 id="titulo-descargas">Descargas claras y directas</h2></div>'
+            '<p>Elige el formato según el momento: imprimir, compartir con el equipo o '
+            'consultar desde el teléfono.</p></div>'
+            '<div class="download-table-wrap"><table class="download-table">'
+            '<thead><tr><th>Recurso</th><th>Formato</th><th>Ideal para</th><th>Acción</th></tr></thead>'
+            '<tbody><tr><td data-label="Recurso"><strong>Guía completa</strong>'
+            '<small>15 fichas y anexos</small></td><td data-label="Formato">PDF · %d páginas</td>'
+            '<td data-label="Ideal para">Imprimir y llevar a la cancha</td>'
+            '<td data-label="Acción"><a class="button" '
+            'href="guia-entrena-como-las-grandes.pdf">Descargar PDF</a></td></tr>'
+            '<tr><td data-label="Recurso"><strong>Láminas del grupo</strong>'
+            '<small>Verticales y compartibles</small></td><td data-label="Formato">PDF · %d láminas</td>'
+            '<td data-label="Ideal para">WhatsApp y consulta rápida</td>'
+            '<td data-label="Acción"><a class="button secondary" '
+            'href="posters-para-el-grupo.pdf">Ver láminas</a></td></tr>'
+            '<tr><td data-label="Recurso"><strong>Guía web offline</strong>'
+            '<small>Sin JavaScript ni archivos externos</small></td><td data-label="Formato">HTML único</td>'
+            '<td data-label="Ideal para">Guardar en Android, iPhone o computadora</td>'
+            '<td data-label="Acción"><a class="button secondary" href="index.html" '
+            'download="guia-futbol-offline.html">Guardar HTML</a></td></tr></tbody></table></div>'
+            '</section><details class="contents" id="indice" open>'
+            '<summary>Índice de las 15 fichas</summary>'
+            '<nav class="toc" aria-label="Índice de fichas">%s</nav></details>'
+            '<section aria-labelledby="titulo-guia"><header class="guide-heading">'
+            '<h2 id="titulo-guia">Fichas de entrenamiento</h2>'
+            '<p>Abre una ficha, revisa un solo objetivo y repítelo. Los enlaces de video '
+            'están claramente marcados porque necesitan conexión.</p></header>%s</section>'
+            '</div></main><footer class="site-footer"><div class="shell">'
+            '<strong>Ver, copiar, repetir, corregir.</strong>'
+            '<span>Guía de entrenamiento · fútbol femenil sub-17</span>'
+            '</div></footer></body></html>'
+            % (css, len(C.DRILLS), TOTAL, len(C.POSTERS), TOTAL, len(C.POSTERS), toc,
+               ''.join(fichas)))
 
 
 # ---------------------------------------------------------------- comprobaciones
@@ -594,25 +648,42 @@ if __name__ == '__main__':
     page_hoja(guia, 4 + len(C.DRILLS))
     page_anexo(guia, 5 + len(C.DRILLS))
     probs = check_diagrams() + check(guia, 'guia', W, H)
-    n1 = guia.save(os.path.join(OUT, 'guia-entrena-como-las-grandes.pdf'))
     links1 = sum(len(p.links) for p in guia.pages)
 
     lam = pk.Doc()
     for i, po in enumerate(C.POSTERS, 1):
         poster(lam, po, i, len(C.POSTERS))
     probs += check(lam, 'laminas', PW, PH)
-    n2 = lam.save(os.path.join(OUT, 'posters-para-el-grupo.pdf'))
     links2 = sum(len(p.links) for p in lam.pages)
 
-    with open(os.path.join(OUT, 'index.html'), 'w', encoding='utf-8') as f:
-        f.write(html())
-
-    print('guia   : %d paginas, %d KB, %d enlaces' % (len(guia.pages), n1 // 1024, links1))
-    print('laminas: %d paginas, %d KB, %d enlaces' % (len(lam.pages), n2 // 1024, links2))
-    print('html   : %d KB' % (os.path.getsize(os.path.join(OUT, 'index.html')) // 1024))
+    site = html()
+    if site.count('<article') != len(C.DRILLS):
+        probs.append('html: faltan fichas')
+    if site.count('class="exercise-diagram"') != len(C.DRILLS):
+        probs.append('html: faltan diagramas offline')
+    if site.count('class="qr"') != len(C.DRILLS):
+        probs.append('html: faltan códigos QR offline')
+    if site.count('loading="lazy"') != len(C.DRILLS) * 2:
+        probs.append('html: la carga diferida no cubre las 30 imágenes')
+    if '<script' in site.lower():
+        probs.append('html: no debe depender de JavaScript')
     if probs:
         print('\n%d PROBLEMAS DE MAQUETACION:' % len(probs))
         for x in probs[:40]:
             print(' -', x)
         sys.exit(1)
+
+    names = ('guia-entrena-como-las-grandes.pdf', 'posters-para-el-grupo.pdf',
+             'index.html')
+    with tempfile.TemporaryDirectory(prefix='.guia-build-', dir=OUT) as build_dir:
+        n1 = guia.save(os.path.join(build_dir, names[0]))
+        n2 = lam.save(os.path.join(build_dir, names[1]))
+        with open(os.path.join(build_dir, names[2]), 'w', encoding='utf-8') as f:
+            f.write(site)
+        for name in names:
+            os.replace(os.path.join(build_dir, name), os.path.join(OUT, name))
+
+    print('guia   : %d paginas, %d KB, %d enlaces' % (len(guia.pages), n1 // 1024, links1))
+    print('laminas: %d paginas, %d KB, %d enlaces' % (len(lam.pages), n2 // 1024, links2))
+    print('html   : %d KB' % (os.path.getsize(os.path.join(OUT, names[2])) // 1024))
     print('\nmaquetacion sin desbordes')
