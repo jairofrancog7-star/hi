@@ -1,0 +1,40 @@
+ENTRENA COMO LAS GRANDES · sub-17 femenil
+=========================================
+
+QUÉ HAY AQUÍ
+
+  guia-entrena-como-las-grandes.pdf   20 hojas A4. 15 ejercicios, cada uno con
+                                      dibujo de cancha, paso a paso, dosis,
+                                      qué mira la compañera, enlaces y QR.
+                                      Se imprime y se lleva al campo.
+
+  posters-para-el-grupo.pdf           13 láminas verticales (tamaño historia).
+                                      Le tomas captura a la que quieras y la
+                                      mandas al grupo de WhatsApp.
+
+  index.html                          La misma guía para el celular, con todos
+                                      los videos como botones. Sin internet no
+                                      se ven los videos, pero la guía sí.
+
+  fuente/                             El código que genera los tres archivos.
+                                      python3 fuente/build.py los vuelve a hacer.
+
+
+CÓMO SE VEN LOS VIDEOS
+
+  Un PDF no reproduce video adentro: ningún lector de celular lo hace. Hay dos
+  caminos y los dos están puestos:
+
+  1. Picar el nombre del video en el PDF y se abre YouTube (62 enlaces).
+  2. Escanear el cuadro QR con la cámara del celular. Esto también funciona
+     desde la hoja IMPRESA, que es donde un enlace no sirve de nada.
+
+
+ORDEN SUGERIDO PARA EMPEZAR
+
+  Semana 1   ficha 01 (calentar) + ficha 14 (pared) + ficha 02 (rondo)
+  Semana 2   se suma la ficha 13 (tiro) y la 15 (zonas del pie)
+  Semana 3   fichas 10 y 11 (defensa)
+  Semana 4   fichas 05, 07, 08 y 09 (transición y balón parado)
+
+  Regla: una ficha por sesión, no cinco.
