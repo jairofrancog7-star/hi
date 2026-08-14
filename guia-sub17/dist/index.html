@@ -3132,6 +3132,45 @@ html[data-theme="claro"] .v6-actions{
   .v6-actions .v14-theme-current .v6-label{display:inline !important;}
 }
 </style>
+
+<style id="guia-v19-claro-fix">
+/* V19 fix final: en modo claro, las secciones que seguían oscuras pasan a azul claro */
+html[data-theme="claro"] body:not(:has(#tema-v9:checked)) .defensa-prioridad,
+html[data-theme="claro"] body:not(:has(#tema-v9:checked)) .estilos-juego,
+html[data-theme="claro"] body:not(:has(#tema-v9:checked)) .rutina-mental,
+html[data-theme="claro"] body:not(:has(#tema-v9:checked)) .fuentes-tecnica{
+  background:#DCEEFF !important;
+  color:#0A1F33 !important;
+  border:1px solid #8FC7E5 !important;
+  border-radius:24px !important;
+  padding:1rem !important;
+  box-shadow:0 12px 28px rgba(11,44,77,.08) !important;
+}
+html[data-theme="claro"] body:not(:has(#tema-v9:checked)) .defensa-prioridad :is(h1,h2,h3,h4,h5,h6,p,li,dt,dd,span,strong,b,small,label,a),
+html[data-theme="claro"] body:not(:has(#tema-v9:checked)) .estilos-juego :is(h1,h2,h3,h4,h5,h6,p,li,dt,dd,span,strong,b,small,label,a),
+html[data-theme="claro"] body:not(:has(#tema-v9:checked)) .rutina-mental :is(h1,h2,h3,h4,h5,h6,p,li,dt,dd,span,strong,b,small,label,a),
+html[data-theme="claro"] body:not(:has(#tema-v9:checked)) .fuentes-tecnica :is(h1,h2,h3,h4,h5,h6,p,li,dt,dd,span,strong,b,small,label,a){
+  color:#0A1F33 !important;
+  opacity:1 !important;
+}
+html[data-theme="claro"] body:not(:has(#tema-v9:checked)) .fuentes-tecnica a{
+  color:#0B6FA4 !important;
+}
+html[data-theme="claro"] body:not(:has(#tema-v9:checked)) .defensa-prioridad .defensa-grid article,
+html[data-theme="claro"] body:not(:has(#tema-v9:checked)) .estilos-juego .estilo-card{
+  background:#FFFFFF !important;
+  border-color:#A7D7EF !important;
+}
+html[data-theme="claro"] body:not(:has(#tema-v9:checked)) .defensa-prioridad .defensa-grid article :is(h1,h2,h3,h4,h5,h6,p,li,span,strong,b),
+html[data-theme="claro"] body:not(:has(#tema-v9:checked)) .estilos-juego .estilo-card :is(h1,h2,h3,h4,h5,h6,p,li,span,strong,b){
+  color:#111827 !important;
+}
+html[data-theme="claro"] body:not(:has(#tema-v9:checked)) .estilos-juego .estilo-card .estilo-tag{
+  background:#DCEEFF !important;
+  color:#0B6FA4 !important;
+}
+</style>
+
 </head>
 <body><input type="checkbox" id="tema-v9" aria-label="Activar modo oscuro">
 <div class="v6-appbar" id="v6-top">
