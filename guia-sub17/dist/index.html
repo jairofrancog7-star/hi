@@ -3267,6 +3267,7 @@ html.v20-dark #tema-v20{
 
 </head>
 <body>
+<input type="checkbox" id="tema-v9" aria-label="Activar modo oscuro" tabindex="-1">
 <div class="v6-appbar" id="v6-top">
   <div class="v6-brand"><span class="v6-brand-mark"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 20 6v5c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6Z"/><path d="m9 12 2 2 4-4"/></svg></span><span class="v6-brand-text">Entrena como las grandes</span></div>
   <div class="v6-actions">
@@ -3942,6 +3943,7 @@ document.addEventListener('DOMContentLoaded',function(){
   ready(function(){
     var root=document.documentElement;
     var btn=document.getElementById('tema-v20');
+    var legacyBox=document.getElementById('tema-v9');
 
     function apply(mode,save){
       mode=mode==='oscuro'?'oscuro':'claro';
@@ -3951,6 +3953,9 @@ document.addEventListener('DOMContentLoaded',function(){
       /* Sincronizamos v14-dark para que los estilos oscuros ya aprobados sigan funcionando. */
       root.classList.toggle('v14-dark',dark);
       root.setAttribute('data-theme',mode);
+      /* V19 usaba este checkbox para activar gran parte de sus estilos oscuros.
+         V20 lo mantiene oculto, pero lo sincroniza para conservar exactamente ese comportamiento. */
+      if(legacyBox){legacyBox.checked=dark;}
       if(btn){
         /* El texto dice la ACCIÓN disponible, no el estado: así no queda invertido. */
         btn.innerHTML=dark?'☀ <span>Modo claro</span>':'☾ <span>Modo oscuro</span>';
