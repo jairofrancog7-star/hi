@@ -3265,6 +3265,7 @@ html.v20-dark #tema-v20{
 }
 </style>
 
+<meta name="guia-v20-theme-fix" content="htmlpreview-inline-click-v1">
 </head>
 <body>
 <input type="checkbox" id="tema-v9" aria-label="Activar modo oscuro" tabindex="-1">
@@ -3273,7 +3274,7 @@ html.v20-dark #tema-v20{
   <div class="v6-actions">
     <a class="v6-btn" href="#gb-q" aria-label="Buscar ejercicios"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg><span class="v6-label">Buscar</span></a>
     <button class="v6-btn" type="button" onclick="window.print()" aria-label="Guardar o imprimir PDF"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg><span class="v6-label">PDF</span></button>
-    <button type="button" class="v6-btn" id="tema-v20" aria-label="Cambiar a modo oscuro" aria-pressed="false">☾ <span>Modo oscuro</span></button>
+    <button type="button" class="v6-btn" id="tema-v20" aria-label="Cambiar a modo oscuro" aria-pressed="false" onclick="var r=document.documentElement,b=document.getElementById('tema-v9'),d=!(r.classList.contains('v20-dark')||r.classList.contains('v14-dark')||r.getAttribute('data-theme')==='oscuro'||(b&&b.checked));if(b)b.checked=d;r.classList.toggle('v20-dark',d);r.classList.toggle('v20-light',!d);r.classList.toggle('v14-dark',d);r.setAttribute('data-theme',d?'oscuro':'claro');this.innerHTML=d?'☀ <span>Modo claro</span>':'☾ <span>Modo oscuro</span>';this.setAttribute('aria-label',d?'Cambiar a modo claro':'Cambiar a modo oscuro');this.setAttribute('aria-pressed',d?'true':'false');try{localStorage.setItem('guia-tema-v20',d?'oscuro':'claro');localStorage.setItem('guia-tema-v9',d?'oscuro':'claro')}catch(e){};return false;">☾ <span>Modo oscuro</span></button>
   </div>
 </div>
 <section class="v6-hero" aria-label="Presentación">
@@ -3979,13 +3980,8 @@ document.addEventListener('DOMContentLoaded',function(){
       else if(legacy==='claro'||legacy==='oscuro')mode=legacy;
     }catch(e){}
     apply(mode,false);
-
-    if(btn){
-      btn.addEventListener('click',function(){
-        apply(root.classList.contains('v20-dark')?'claro':'oscuro',true);
-      });
-    }
-  });
+    /* El clic de tema se maneja directamente en #tema-v20 para compatibilidad con HTMLPreview. */
+});
 })();
 </script>
 
